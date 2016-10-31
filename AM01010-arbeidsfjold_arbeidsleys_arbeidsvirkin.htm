@@ -1,0 +1,184 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Highcharts Example</title>
+		<script defer src="lib/json-stat/json-stat.js"></script>
+		<script defer src="lib/json-stat/utils/json-stat.utils.js"></script>
+		<script defer src="lib/jquery/jquery-3.1.0.js"></script>
+		<script defer src="lib/highstock-5.0.0/js/highstock.js"></script>
+		<script defer src="lib/highstock-5.0.0/js/modules/exporting.js"></script>
+		<style type="text/css">
+${demo.css}
+		</style>
+		
+	</head>
+	<body>
+
+
+<script type="text/javascript">
+
+    url="http://statbank.hagstova.fo/api/v1/fo/H2/AM/AM01/afk_hovtol.px";
+    query={ "query": [],
+            "response": {
+              "format": "json-stat"
+            }
+          };
+
+
+    function main(obj){
+      ds=JSONstat(obj).Dataset(0);
+
+
+      
+
+
+
+		$(function (t) {
+			t=ds.Dimension("year").length-1;
+      		year=ds.Dimension("year").id[t];			
+			var avt = ds.Data({"main figures": "AVT"}, false);
+			var alt = ds.Data({"main figures": "ALT"}, false);			
+			var year = ds.Dimension("year", false);
+			
+			var fLen = year.length;
+
+			
+
+
+			var avtdata = [];
+			for (i = 0; i < fLen; i++) {
+			  avtdata.push([Date.parse(year[i]), avt[i]]);
+
+			}
+
+
+			var altdata = [];
+			for (i = 0; i < fLen; i++) {
+			  altdata.push([Date.parse(year[i]), alt[i]]);
+
+			}
+			
+
+
+		    $('#container').highcharts({
+		    	credits: {
+		    		enabled: false
+		    	},
+		        chart: {
+		            type: 'area'
+		        },
+		        rangeSelector: {
+		            enabled: false,
+		        },
+
+				navigator:{
+					enabled:true,
+				},	        
+
+		        title: {
+		            text: ds.label
+		        },
+		        subtitle: {
+		            text: ds.source
+		        },
+		        xAxis: {  
+		            title: {
+		                enabled: false
+		            },
+		            type: 'datetime',
+					range: 38 * 30 * 24 * 3600 * 1000, // six months
+					max : Date.UTC(2015, 0, 1)
+		        },
+		        yAxis: {
+		            title: {
+		                text: 'Fólk'
+		            },
+
+		        },
+				tooltip: {
+				    formatter: function() {
+				        var s = '<b>'+ Highcharts.dateFormat('%Y', this.x) +'</b>',
+				            sum = 0;
+
+				        $.each(this.points, function(i, point) {
+				            s += '<br/>'+ point.series.name +': '+ Highcharts.numberFormat(point.y,.0) + ' (' + Highcharts.numberFormat(this.percentage, 1)+' %)';
+				            sum += point.y;
+				                point.y;
+				            sum += point.y;
+				        });
+
+				        s += '<br/>Sum: '+sum
+
+				        return s;
+				    },
+				    shared: true,
+
+				},
+		        plotOptions: {
+		            area: {
+		                stacking: 'normal',
+		                lineColor: '#666666',
+		                lineWidth: 1,
+		                marker: {
+		                    lineWidth: 1,
+		                    lineColor: '#666666'
+		                }
+		            }
+		        },
+		        series: [
+		        
+		        {
+		            name: ds.Dimension("main figures").Category("AVT").label,           
+		            data: avtdata,
+					pointStart: Date.UTC(2005, 0, 1),
+		            pointInterval: 24 * 3600 * 1000 * 365, // one year		            
+		            color: '#2980b9',
+		            tooltip: {
+		                valueDecimals: 0
+		            }		            
+		        },
+		        {
+		            name: ds.Dimension("main figures").Category("ALT").label,           
+		            data: altdata,
+					pointStart: Date.UTC(2005, 0, 1),
+		            pointInterval: 24 * 3600 * 1000 * 365, // one year		            
+		            color: '#2c3e50',
+		            tooltip: {
+		                valueDecimals: 0
+		            }		            
+		        }
+		        ],
+		    });
+		});
+
+
+
+
+
+
+
+    }
+
+POST(url, query, main);
+
+function POST(url, query, main){
+  fetch( url, { method: "post", body: JSON.stringify(query) } )
+    .then(function(resp) {
+      resp.json().then(main);
+    })
+  ;
+}
+
+
+
+
+
+
+		</script>
+
+
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+	</body>
+</html>
