@@ -1,0 +1,127 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Arbeiðsfjøldarkanning | Highcharts dømi</title>
+		<script defer src="lib/json-stat/json-stat.js"></script>
+		<script defer src="lib/json-stat/utils/json-stat.utils.js"></script>
+		<script defer src="lib/jquery/jquery-3.1.0.js"></script>
+		<script defer src="lib/highstock-5.0.0/js/highstock.js"></script>
+		<script defer src="lib/highstock-5.0.0/js/modules/exporting.js"></script>
+	</head>
+	<body>
+
+	<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+	<script type="text/javascript">
+
+		url="http://statbank.hagstova.fo/api/v1/fo/H2/AM/AM02/al_pctkyn_t.px";
+		query={
+			"query": [
+			    {
+			      "code": "measure",
+			      "selection": {
+			        "filter": "item",
+			        "values": [
+			          "SKRA",
+			          "FULLT",
+			          "FULLTJ"
+			        ]
+			      }
+			    },
+			    {
+			      "code": "sex",
+			      "selection": {
+			        "filter": "item",
+			        "values": [
+			          "TOT"
+			        ]
+			      }
+			    }
+			  ],
+			  "response": {
+			    "format": "json-stat"
+			  }
+			};
+
+		function main(obj){
+			ds=JSONstat(obj).Dataset(0);
+
+			hc={
+				credits: {
+					enabled: true,
+					text: "Hagstova Føroya"
+					},
+	            StockChart: {
+	                type: 'line'
+	            },
+
+	            rangeSelector: {
+                	allButtonsEnabled: true
+            	}, 
+				title: {
+					text: ds.label
+				},
+				xAxis: {
+					categories: ds.Dimension("month", false),
+					tickmarkPlacement: 'on',
+					title: {
+						enabled: true
+					}
+				},
+				yAxis: {
+					title: {
+						text: 'Arbeiðsleys'
+					},
+					labels: {
+						formatter: function () {
+							return this.value;
+						}
+					}
+				},
+				tooltip: {
+					split: true,
+					valueSuffix: ' persónar'
+				},
+				plotOptions: {
+					area: {
+						stacking: 'normal',
+						lineColor: '#666666',
+						lineWidth: 1,
+						marker: {
+							lineWidth: 1,
+							lineColor: '#666666'
+						}
+					}
+				},
+				series: [{
+					name: ds.Dimension("measure").Category("SKRA").label,
+					data: ds.Data({"measure": "SKRA"}, false)
+				}, {
+					name: ds.Dimension("measure").Category("FULLT").label,
+					data: ds.Data({"measure": "FULLT"}, false)
+				}, {
+					name: ds.Dimension("measure").Category("FULLTJ").label,
+					data: ds.Data({"measure": "FULLTJ"}, false)
+				}]
+			};
+
+
+			$(function () {
+				$('#container').highcharts(hc);
+			});
+		}
+
+	POST(url, query, main);
+
+	function POST(url, query, main){
+	  fetch( url, { method: "post", body: JSON.stringify(query) } )
+		.then(function(resp) {
+		  resp.json().then(main);
+		})
+	  ;
+	}
+
+	</script>
+	</body>
+</html>
