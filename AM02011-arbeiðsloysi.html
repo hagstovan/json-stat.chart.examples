@@ -37,7 +37,17 @@
 			          "TOT"
 			        ]
 			      }
+			    },
+			    {
+			      "code": "unit",
+			      "selection": {
+			        "filter": "item",
+			        "values": [
+			          "PCT"
+			        ]
+			      }
 			    }
+
 			  ],
 			  "response": {
 			    "format": "json-stat"
@@ -55,6 +65,13 @@
 	            StockChart: {
 	                type: 'line'
 	            },
+		        rangeSelector: {
+		            enabled: false,
+		        },
+
+				navigator:{
+					enabled:true,
+				},	        
 
 	            rangeSelector: {
                 	allButtonsEnabled: true
@@ -75,13 +92,27 @@
 					},
 					labels: {
 						formatter: function () {
-							return this.value;
+							return Highcharts.numberFormat(this.value,.0);
 						}
 					}
 				},
 				tooltip: {
-					split: true,
-					valueSuffix: ' persónar'
+				    formatter: function() {
+				        var s = '<b>'+ Highcharts.dateFormat('%Y', this.x) +'</b>',
+				            sum = 0;
+
+				        $.each(this.points, function(i, point) {
+				            s += '<br/>'+ point.series.name +': '+ Highcharts.numberFormat(point.y,.0);
+
+				            
+				        });
+
+				        s += '<br/> '
+
+				        return s;
+				    },
+				    shared: true,
+
 				},
 				plotOptions: {
 					area: {

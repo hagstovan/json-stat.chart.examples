@@ -1,0 +1,236 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Highcharts Example</title>
+    <script defer src="lib/json-stat/json-stat.js"></script>
+    <script defer src="lib/json-stat/utils/json-stat.utils.js"></script>
+    <script defer src="lib/jquery/jquery-3.1.0.js"></script>
+    <script defer src="lib/highstock-5.0.0/js/highstock.js"></script>
+    <script defer src="lib/highstock-5.0.0/js/modules/exporting.js"></script>
+		<style type="text/css">
+${demo.css}
+		</style>
+		
+	</head>
+	<body>
+
+
+
+	
+
+<SELECT id="list">
+    <OPTION VALUE="A">Arbeiðsfjøld tilsamans</option>
+    <OPTION VALUE="B">Arbeiðsfjøld býtt á kyn</option>
+</SELECT>
+
+
+
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+
+<script type="text/javascript">
+    url="http://statbank.hagstova.fo/api/v1/fo/H2/AM/AM01/afk_afavald.px";
+    query={
+  "query": [
+    {
+      "code": "sex",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "TOT", "M", "F", 
+        ]
+      }
+    },
+    {
+      "code": "unit",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "PCT"
+        ]
+      }
+    }, 
+
+    {
+      "code": "agegroup",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "15-19",
+          "20-24",
+          "25-34",
+          "35-39",
+          "40-44",
+          "45-49",
+          "50-54",
+          "55-59",
+          "60-64",
+          "65-74"
+
+        ]
+      }
+    },     
+    {
+      "code": "measure",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "AF"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json-stat"
+  }
+};
+
+
+
+    function main(obj){
+      ds=JSONstat(obj).Dataset(0);
+
+
+		$(function (t) {
+			t=ds.Dimension("year").length-1;			
+
+var options = {
+
+    chart: {
+        renderTo: 'container',
+        type: 'column'
+    },
+		    	credits: {
+		    		enabled: false
+		    	},
+
+		        title: {
+		            text: ds.label
+		        },
+		        subtitle: {
+		            text: ds.source
+		        },
+        
+		        xAxis: {  
+		            title: {
+		                enabled: false
+		            },
+					categories: ds.Dimension("agegroup", false)
+
+//		            type: 'datetime',
+//					range: 38 * 30 * 24 * 3600 * 1000, // six months
+//					max : Date.UTC(2015, 0, 1)		            
+		        },
+		        yAxis: {
+		            title: {
+		                text: ds.Dimension("unit").Category("PCT").label
+		            }       
+
+		        },
+				tooltip: {
+            		valueDecimals: 0,
+           			valueSuffix: '%',
+
+				},	        
+
+   				series: [
+   				{
+   					name: ds.Dimension("agegroup").label, 
+   					data: ds.Data({"measure": "AF", "year":"2015", "sex":"TOT", "unit":"PCT"}, false),
+//					pointStart: Date.UTC(2005, 0, 1),
+//		            pointInterval: 24 * 3600 * 1000 * 365, // one year	
+		            color: '#2980b9'
+
+   				}			
+
+   				]
+};
+var chart = new Highcharts.Chart(options);
+
+$("#list").on('change', function(){
+    //alert('f')
+    var selVal = $("#list").val();
+    if(selVal == "A" || selVal == '')
+    {
+        options.series = [
+   				{
+   					name: ds.Dimension("agegroup").label, 
+   					data: ds.Data({"measure": "AF", "year":"2015", "sex":"TOT", "unit":"PCT"}, false),
+//					pointStart: Date.UTC(2005, 0, 1),
+//		            pointInterval: 24 * 3600 * 1000 * 365, // one year	
+		            color: '#2980b9'
+
+   				}	   				
+   				]
+    }
+    else if(selVal == "B")
+    {
+        options.series = [
+   				{
+   					name: ds.Dimension("sex").Category("F").label,
+   					data: ds.Data({"measure": "AF", "year":"2015", "sex":"F", "unit":"PCT"}, false),
+//					pointStart: Date.UTC(2005, 0, 1),
+//		            pointInterval: 24 * 3600 * 1000 * 365, // one year	
+		            color: '#8e44ad',
+		            tooltip: {
+		                valueDecimals: 0
+		            }			            	   					
+   				},
+   				{
+   					name: ds.Dimension("sex").Category("M").label,
+   					data: ds.Data({"measure": "AF", "year":"2015", "sex":"M", "unit":"PCT"}, false),
+//					pointStart: Date.UTC(2005, 0, 1),
+//		            pointInterval: 24 * 3600 * 1000 * 365, // one year	
+  		            color: '#2980b9'         	   					
+   				}  				
+   				],
+
+   		options.yAxis = {
+   			            stackLabels: {
+                		enabled: true
+                		}
+   				}
+    }
+    else if(selVal == "C")
+    {
+        options.series = [
+   				{
+   					name: 'test1', 
+   					data: af_1519,
+//					pointStart: Date.UTC(2005, 0, 1),
+//		            pointInterval: 24 * 3600 * 1000 * 365, // one year	
+		            color: '#8e44ad'	  		            	   					
+   				},
+   				{
+   					name: 'test2', 
+   					data: af_2024,
+//					pointStart: Date.UTC(2005, 0, 1),
+//		            pointInterval: 24 * 3600 * 1000 * 365, // one year	
+  		            color: '#2980b9',		            	   					
+   				}   				
+   				]
+    } 
+    else
+    {
+        options.series = [{name: 'D', data: [4,7,9,6,2]}]
+    }  
+    var chart = new Highcharts.Chart(options);    
+});
+		});
+    }
+POST(url, query, main);
+
+function POST(url, query, main){
+  fetch( url, { method: "post", body: JSON.stringify(query) } )
+    .then(function(resp) {
+      resp.json().then(main);
+    })
+  ;
+}
+
+
+</script>
+
+	</body>
+</html>
