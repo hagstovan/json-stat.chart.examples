@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <script defer src="lib/json-stat/json-stat.js"></script>
+    <script defer src="lib/json-stat/utils/json-stat.utils.js"></script>
+    <script defer src="lib/jquery/jquery-3.1.0.js"></script>
+
+  </head>
+
+  <body>
+
+    <div id="datafromstatbank"></div>
+
+   
+    <script>
+
+    url="http://statbank.hagstova.fo/sq/IB01030-fo-aldbygd";  // Saved query, sum liggur á px-webservaranum
+
+    function main(obj){
+      ds=JSONstat(obj).Dataset(0);
+
+//      document.getElementById("datafromstatbank").innerHTML = ds.toTable();       // JavaScript
+        $("#datafromstatbank").html( ds.toTable() );                                // jQuery 
+
+    }
+
+     GET(url, main);
+
+    function GET(url, main){
+      fetch( url )
+        .then(function(resp) {
+          resp.json().then(main);
+        })
+      ;
+    }
+    
+    </script>
+
+
+  </body>
+</html>
