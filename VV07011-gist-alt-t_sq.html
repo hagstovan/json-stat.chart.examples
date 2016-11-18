@@ -47,6 +47,56 @@
       }
     });
 
+
+    cdata = [];
+    cddims = [];
+    cldims = [];
+
+    for (var i = ds.length - 1; i >= 0; i--) {
+      if(!(ds.Dimension(i).role === "time")) {
+        cddims.push(ds.Dimension(i));
+      }
+    }
+
+    for (var i = cddims.length - 1; i >= 0; i--) {
+      if(!(cddims[i].label === "Sorteringsvariabul")) {
+        cldims.push(cddims[i]);
+      }
+    }
+
+    var nameLabel = "";
+
+    for (var i = cldims.length - 1; i >= 0; i--) {
+        nameLabel += cldims[i].label + (i>0?" | ":"");
+    }
+
+    for (var r = ds.Dimension("region").length - 1; r >= 0; r--) {
+
+      
+
+      cdata.push({
+          name: ds.Dimension("unit").Category(0).label + " | " +
+                ds.Dimension("type of accommodation").Category(0).label + " | " +
+                ds.Dimension("country of residence").Category(25).label + " | " +
+                ds.Dimension("region").Category(r).label,
+          data: ds.toTable(
+                            { type : "arrobj"},
+                              function( d, i ){
+                                  if ( 
+                                        d["unit"]                   === ds.Dimension("unit").Category(0).label 
+                                    &&  d["$$SORT"]                 === ds.Dimension("$$SORT").Category(0).label
+                                    &&  d["type of accommodation"]  === ds.Dimension("type of accommodation").Category(0).label
+                                    &&  d["country of residence"]   === ds.Dimension("country of residence").Category(25).label 
+                                    &&  d["region"]                 === ds.Dimension("region").Category(r).label 
+                                    )
+                                  {
+                                     return d;
+                                  }
+                              }
+            ).map( function(e){ return [Date.parse(e.month.replace('M','-')), e.value]})
+        });
+    }
+
     hc={
         chart: {
           type: 'spline',
@@ -123,48 +173,7 @@
             }
           }
         },
-        series: [{
-          name: ds.Dimension("unit").Category(0).label + " | " +
-                ds.Dimension("type of accommodation").Category(0).label + " | " +
-                ds.Dimension("country of residence").Category(25).label + " | " +
-                ds.Dimension("region").Category(0).label,
-          data: ds.toTable(
-                            { type : "arrobj"},
-                              function( d, i ){
-                                  if ( 
-                                        d["unit"]                   === ds.Dimension("unit").Category(0).label 
-                                    &&  d["$$SORT"]                 === ds.Dimension("$$SORT").Category(0).label
-                                    &&  d["type of accommodation"]  === ds.Dimension("type of accommodation").Category(0).label
-                                    &&  d["country of residence"]   === ds.Dimension("country of residence").Category(25).label 
-                                    &&  d["region"]                 === ds.Dimension("region").Category(0).label 
-                                    )
-                                  {
-                                     return d;
-                                  }
-                              }
-            ).map( function(e){ return [Date.parse(e.month.replace('M','-')), e.value]})
-        },
-        {
-          name: ds.Dimension("unit").Category(0).label + " | " +
-                ds.Dimension("type of accommodation").Category(0).label + " | " +
-                ds.Dimension("country of residence").Category(25).label + " | " +
-                ds.Dimension("region").Category(1).label,
-          data: ds.toTable(
-                            { type : "arrobj"},
-                              function( d, i ){
-                                  if ( 
-                                        d["unit"]                   === ds.Dimension("unit").Category(0).label 
-                                    &&  d["$$SORT"]                 === ds.Dimension("$$SORT").Category(0).label
-                                    &&  d["type of accommodation"]  === ds.Dimension("type of accommodation").Category(0).label
-                                    &&  d["country of residence"]   === ds.Dimension("country of residence").Category(25).label 
-                                    &&  d["region"]                 === ds.Dimension("region").Category(1).label 
-                                    )
-                                  {
-                                     return d;
-                                  }
-                              }
-            ).map( function(e){ return [Date.parse(e.month.replace('M','-')), e.value]})
-        }]
+        series: cdata
       };
 
 
