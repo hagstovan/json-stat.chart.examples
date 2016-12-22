@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <script defer src="lib/json-stat/json-stat.js"></script>
+    <script defer src="lib/json-stat/utils/json-stat.utils.js"></script>
+    <script defer src="lib/jquery/jquery-3.1.0.js"></script>
+    <script defer src="lib/highstock-5.0.0/js/highstock.js"></script>
+    <script defer src="lib/highstock-5.0.0/js/highcharts-more.js"></script>
+    <script defer src="lib/highstock-5.0.0/js/modules/exporting.js"></script>
+
+  </head>
+
+  <body>
+
+    <div id="datafromstatbank"></div>
+   
+    <script>
+
+    //url="https://statbank.hagstova.fo/sq/VV07011-gist-alt-t";  // Saved query, sum liggur á px-webservaranum
+    //url="http://statbank.hagstova.fo/sq/6929498b-ee49-417c-ba7f-675a2896f818"; //Rokna Tils. fyri COR
+    url="http://statbank.hagstova.fo/sq/2ce5d32b-114b-4b01-9d96-5b513a328797" //Rokna Tilsamans fyri COR og so prosent av Tilsamans fyri COR - eyka dimension: $$SORT (tal og prosent)
+
+    function main(obj){
+
+      ds=JSONstat(obj).Dataset(0);
+
+      Highcharts.setOptions({
+      lang: {
+        decimalPoint: ",",
+        thousandsSep: " ",
+        shortWeekdays: ["Mán", "Týs", "Mik", "Hós", "Frí", "Ley", "Sun"],
+        weekdays: ["Mánadagur", "Týsdagur", "Mikudagur", "Hósdagur", "Fríggjadagur", "Leygardagur", "Sunnudagur"],  
+        shortMonths: ["Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Des"],
+        months: ["Januar", "Februar", "Mars", "Apríl", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"],
+        downloadJPEG: "Goym JPEG mynd",
+        downloadPDF: "Goym PDF skjal",
+        downloadPNG: "Goym PNG mynd",
+        downloadSVG: "Goym SVG vektor mynd",
+        loading: "lesi inn...",
+        printChart: "Prenta",
+        rangeSelectorFrom: "Frá",
+        rangeSelectorTo: "Til",
+        resetZoom: "Nullstilla zoom",
+        resetZoomTitle: "Nullstilla zoom level 1:1"
+      }
+    });
+
+
+    cdata = [];
+
+    for (var r = ds.Dimension("region").length - 1; r >= 0; r--) {
+
+      cdata.push({
+          name: ds.Dimension("unit").Category(0).label + " | " +
+                ds.Dimension("type of accommodation").Category(0).label + " | " +
+                ds.Dimension("country of residence").Category(25).label + " | " +
+                ds.Dimension("region").Category(r).label,
+          data: ds.toTable(
+                            { type : "arrobj"},
+                              function( d, i ){
+                                  if ( 
+                                        d["unit"]                   === ds.Dimension("unit").Category(0).label 
+                                    &&  d["$$SORT"]                 === ds.Dimension("$$SORT").Category(0).label
+                                    &&  d["type of accommodation"]  === ds.Dimension("type of accommodation").Category(0).label
+                                    &&  d["country of residence"]   === ds.Dimension("country of residence").Category(25).label 
+                                    &&  d["region"]                 === ds.Dimension("region").Category(r).label 
+                                    )
+                                  {
+                                     return d;
+                                  }
+                              }
+            ).map( function(e){ return [Date.parse(e.month.replace('M','-')), e.value]})
+        });
+    }
+
+    hc={
+        chart: {
+          type: 'spline',
+          zoomType: 'x'
+        },
+        rangeSelector: {
+          enabled: true,
+          buttons: [
+            {
+              type: 'month',
+              count: 6,
+              text: '6m'
+            }, {
+              type: 'year',
+              count: 1,
+              text: '1ár'
+            }, {
+              type: 'all',
+              text: 'Alt'
+            }
+          ]
+        },
+        navigator: {
+          enabled: true
+        },
+        credits: {
+          enabled: true,
+          text: "Hagstova Føroya"
+        }, 
+        title: {
+          text: "Gistingar á gistingarhúsum"
+        },
+        xAxis: {
+          type: 'datetime',
+          dateTimeLabelFormats: {
+            month: '%Y-%m',
+            year: '%Y'
+          }
+        },
+        yAxis: {
+          title: {
+            text: 'yaxis label'
+          },
+          labels: {
+            formatter: function () {
+              return Highcharts.numberFormat(this.value,.0);
+            }
+          }
+        },
+        tooltip: {
+            formatter: function() {
+                var s = '<b>'+ Highcharts.dateFormat('%Y %B', this.x) +'</b>',
+                    sum = 0;
+
+                $.each(this.points, function(i, point) {
+                    s += '<br/>'+ point.series.name +': '+ Highcharts.numberFormat(point.y,.0);
+                });
+
+                s += '<br/> '
+
+                return s;
+            },
+            shared: true,
+
+        },
+        plotOptions: {
+          area: {
+            stacking: 'normal',
+            lineColor: '#666666',
+            lineWidth: 1,
+            marker: {
+              lineWidth: 1,
+              lineColor: '#666666'
+            }
+          }
+        },
+        series: cdata
+      };
+
+
+      $(function () {
+        $('#datafromstatbank').highcharts(hc);
+      });
+
+    }
+
+     GET(url, main);
+
+    function GET(url, main){
+      fetch( url )
+        .then(function(resp) {
+          resp.json().then(main);
+        })
+      ;
+    }
+    
+    </script>
+
+
+  </body>
+</html>
